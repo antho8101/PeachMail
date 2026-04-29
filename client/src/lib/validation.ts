@@ -16,7 +16,7 @@ export type SmtpSettings = {
   fromEmail: string;
 };
 
-export type SendStatus = "pending" | "sent" | "error";
+export type SendStatus = "pending" | "sent" | "error" | "blocked";
 
 export type SendLog = {
   id: number;
@@ -30,6 +30,16 @@ export type SendLog = {
 };
 
 export const MAX_EMAILS_PER_CAMPAIGN = 100;
+
+export type CampaignGuardMessages = {
+  subject: string;
+  body: string;
+  contact: string;
+  limit: string;
+  email: string;
+  smtp: string;
+  from: string;
+};
 
 export function createEmptyContact(): Contact {
   return {
@@ -66,16 +76,25 @@ export function getCampaignGuardError(
   subject: string,
   body: string,
   contacts: Contact[],
-  smtp: SmtpSettings
-): string | null {
-  if (!subject.trim()) return "Ajoute un sujet avant de faire partir les petits courriers.";
-  if (!body.trim()) return "Écris un message avant de lancer la machine.";
-  if (contacts.length === 0) return "Ajoute au moins un contact avant l'envoi.";
-  if (contacts.length > MAX_EMAILS_PER_CAMPAIGN) return `Limite MVP: ${MAX_EMAILS_PER_CAMPAIGN} emails par campagne.`;
-  if (contacts.some((contact) => !isValidEmail(contact.email))) return "Un ou plusieurs emails ont une drôle de forme.";
-  if (!smtp.host || !smtp.port || !smtp.user || !smtp.password || !smtp.fromEmail) {
-    return "Complète la connexion email avant d'envoyer.";
+  smtp: SmtpSettings,
+  messages: CampaignGuardMessages = {
+    subject: "Sujet requis.",
+    body: "Message requis.",
+    contact: "Contact requis.",
+    limit: `Limite MVP: ${MAX_EMAILS_PER_CAMPAIGN} emails.`,
+    email: "Email invalide.",
+    smtp: "SMTP incomplet.",
+    from: "Expéditeur invalide."
   }
-  if (!isValidEmail(smtp.fromEmail)) return "L'adresse expéditeur n'est pas valide.";
+): string | null {
+  if (!subject.trim()) return messages.subject;
+  if (!body.trim()) return messages.body;
+  if (contacts.length === 0) return messages.contact;
+  if (contacts.length > MAX_EMAILS_PER_CAMPAIGN) return messages.limit;
+  if (contacts.some((contact) => !isValidEmail(contact.email))) return messages.email;
+  if (!smtp.host || !smtp.port || !smtp.user || !smtp.password || !smtp.fromEmail) {
+    return messages.smtp;
+  }
+  if (!isValidEmail(smtp.fromEmail)) return messages.from;
   return null;
 }

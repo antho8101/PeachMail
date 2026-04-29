@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   root: "client",
+  envDir: process.cwd(),
   plugins: [react()],
   server: {
     port: 5173,

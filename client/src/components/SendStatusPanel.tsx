@@ -1,3 +1,4 @@
+import { useI18n } from "../lib/i18n";
 import type { SendLog, SendStatus } from "../lib/validation";
 
 export type ContactSendStatus = {
@@ -12,31 +13,32 @@ type SendStatusPanelProps = {
   loadingHistory: boolean;
 };
 
-const STATUS_LABELS: Record<SendStatus, string> = {
-  pending: "en attente",
-  sent: "envoyé",
-  error: "erreur"
-};
-
 export function SendStatusPanel({ statuses, history, loadingHistory }: SendStatusPanelProps) {
+  const { t } = useI18n();
+  const statusLabels: Record<SendStatus, string> = {
+    pending: t("status.pending"),
+    sent: t("status.sent"),
+    error: t("status.error"),
+    blocked: t("status.blocked")
+  };
+
   return (
     <section className="card status-card">
       <div className="section-title compact">
         <span className="sticker sticker-green">Logs</span>
         <div>
-          <h2>Statuts d'envoi</h2>
-          <p>Pause café entre deux emails...</p>
+          <h2>{t("status.title")}</h2>
         </div>
       </div>
 
       {statuses.length === 0 ? (
-        <p>Aucune campagne lancée dans cette session.</p>
+        <p>{t("status.none")}</p>
       ) : (
         <div className="status-list">
           {statuses.map((item) => (
             <div className={`status-pill status-${item.status}`} key={item.email}>
               <span>{item.email}</span>
-              <strong>{STATUS_LABELS[item.status]}</strong>
+              <strong>{statusLabels[item.status]}</strong>
               {item.error_message && <small>{item.error_message}</small>}
             </div>
           ))}
@@ -44,17 +46,17 @@ export function SendStatusPanel({ statuses, history, loadingHistory }: SendStatu
       )}
 
       <div className="history-box">
-        <h3>Historique récent</h3>
+        <h3>{t("status.history")}</h3>
         {loadingHistory ? (
-          <p>Je fouille les derniers courriers...</p>
+          <p>{t("status.loading")}</p>
         ) : history.length === 0 ? (
-          <p>Rien dans le carnet pour l'instant.</p>
+          <p>{t("status.empty")}</p>
         ) : (
           <ul>
             {history.map((log) => (
               <li key={log.id}>
                 <span>{log.email}</span>
-                <strong className={`history-${log.status}`}>{STATUS_LABELS[log.status]}</strong>
+                <strong className={`history-${log.status}`}>{statusLabels[log.status]}</strong>
                 <small>{new Date(log.sent_at).toLocaleString("fr-FR")}</small>
               </li>
             ))}

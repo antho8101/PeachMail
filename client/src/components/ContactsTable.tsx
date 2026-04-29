@@ -1,4 +1,5 @@
 import { createEmptyContact, createExampleContacts, isValidEmail, type Contact } from "../lib/validation";
+import { useI18n } from "../lib/i18n";
 
 type ContactsTableProps = {
   contacts: Contact[];
@@ -15,6 +16,7 @@ export function ContactsTable({
   onContactsChange,
   onSelectedContactIdChange
 }: ContactsTableProps) {
+  const { t } = useI18n();
   function updateContact(id: string, field: keyof Omit<Contact, "id">, value: string) {
     onContactsChange(contacts.map((contact) => (contact.id === id ? { ...contact, [field]: value } : contact)));
   }
@@ -44,21 +46,20 @@ export function ContactsTable({
       <div className="section-title">
         <span className="sticker sticker-blue">2</span>
         <div>
-          <h2>Les contacts</h2>
-          <p>Ajoute quelques contacts, ou colle une petite liste.</p>
+          <h2>{t("contacts.title")}</h2>
         </div>
       </div>
 
       <div className="button-row">
-        <button type="button" onClick={addContact}>Ajouter une ligne</button>
-        <button className="secondary-button" type="button" onClick={fillExamples}>Remplir avec des exemples</button>
+        <button type="button" onClick={addContact}>{t("contacts.add")}</button>
+        <button className="secondary-button" type="button" onClick={fillExamples}>{t("contacts.examples")}</button>
       </div>
 
       <div className="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Choix</th>
+              <th>{t("contacts.choice")}</th>
               {COLUMNS.map((column) => (
                 <th key={column}>{column}</th>
               ))}
@@ -68,7 +69,7 @@ export function ContactsTable({
           <tbody>
             {contacts.length === 0 ? (
               <tr>
-                <td colSpan={6} className="empty-cell">Aucun contact pour l'instant. La pile de courrier est toute légère.</td>
+                <td colSpan={6} className="empty-cell">{t("contacts.empty")}</td>
               </tr>
             ) : (
               contacts.map((contact) => (
@@ -93,7 +94,7 @@ export function ContactsTable({
                   ))}
                   <td>
                     <button className="danger-button small-button" type="button" onClick={() => removeContact(contact.id)}>
-                      Supprimer
+                      {t("contacts.delete")}
                     </button>
                   </td>
                 </tr>

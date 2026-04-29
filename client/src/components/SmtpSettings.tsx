@@ -1,3 +1,4 @@
+import { useI18n } from "../lib/i18n";
 import type { SmtpSettings as SmtpSettingsType } from "../lib/validation";
 
 type SmtpSettingsProps = {
@@ -15,6 +16,7 @@ const PRESETS = {
 } as const;
 
 export function SmtpSettings({ settings, delayMs, onSettingsChange, onDelayMsChange }: SmtpSettingsProps) {
+  const { t } = useI18n();
   function update<K extends keyof SmtpSettingsType>(field: K, value: SmtpSettingsType[K]) {
     onSettingsChange({ ...settings, [field]: value });
   }
@@ -28,25 +30,24 @@ export function SmtpSettings({ settings, delayMs, onSettingsChange, onDelayMsCha
       <div className="section-title compact">
         <span className="sticker sticker-pink">SMTP</span>
         <div>
-          <h2>Connexion email</h2>
-          <p>Souvent, il faut un mot de passe d'application plutôt que le mot de passe normal.</p>
+          <h2>{t("smtp.title")}</h2>
         </div>
       </div>
 
       <div className="preset-row">
-        <button type="button" onClick={() => applyPreset("gmail")}>Gmail SMTP</button>
-        <button type="button" onClick={() => applyPreset("outlook")}>Outlook SMTP</button>
-        <button type="button" onClick={() => applyPreset("ovh")}>OVH</button>
-        <button className="secondary-button" type="button" onClick={() => applyPreset("custom")}>Custom</button>
+        <button type="button" onClick={() => applyPreset("gmail")}>{t("smtp.gmail")}</button>
+        <button type="button" onClick={() => applyPreset("outlook")}>{t("smtp.outlook")}</button>
+        <button type="button" onClick={() => applyPreset("ovh")}>{t("smtp.ovh")}</button>
+        <button className="secondary-button" type="button" onClick={() => applyPreset("custom")}>{t("smtp.custom")}</button>
       </div>
 
       <div className="settings-grid">
         <label>
-          Host
+          {t("smtp.host")}
           <input value={settings.host} onChange={(event) => update("host", event.target.value)} placeholder="smtp.gmail.com" />
         </label>
         <label>
-          Port
+          {t("smtp.port")}
           <input
             value={settings.port}
             min={1}
@@ -56,14 +57,14 @@ export function SmtpSettings({ settings, delayMs, onSettingsChange, onDelayMsCha
         </label>
         <label className="checkbox-label">
           <input checked={settings.secure} onChange={(event) => update("secure", event.target.checked)} type="checkbox" />
-          Connexion sécurisée
+          {t("smtp.secure")}
         </label>
         <label>
-          User
+          {t("smtp.user")}
           <input value={settings.user} onChange={(event) => update("user", event.target.value)} placeholder="compte@email.com" />
         </label>
         <label>
-          Password
+          {t("smtp.password")}
           <input
             value={settings.password}
             onChange={(event) => update("password", event.target.value)}
@@ -72,15 +73,15 @@ export function SmtpSettings({ settings, delayMs, onSettingsChange, onDelayMsCha
           />
         </label>
         <label>
-          From name
+          {t("smtp.fromName")}
           <input value={settings.fromName} onChange={(event) => update("fromName", event.target.value)} placeholder="PeachMail" />
         </label>
         <label>
-          From email
+          {t("smtp.fromEmail")}
           <input value={settings.fromEmail} onChange={(event) => update("fromEmail", event.target.value)} placeholder="hello@example.com" />
         </label>
         <label>
-          Délai entre emails
+          {t("smtp.delay")}
           <input
             value={Math.round(delayMs / 1000)}
             min={1}
@@ -90,7 +91,7 @@ export function SmtpSettings({ settings, delayMs, onSettingsChange, onDelayMsCha
         </label>
       </div>
 
-      <p className="consent-note">Utilisez cet outil uniquement avec des contacts qui ont accepté de recevoir vos messages.</p>
+      <p className="consent-note">{t("smtp.consent")}</p>
     </section>
   );
 }

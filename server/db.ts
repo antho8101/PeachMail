@@ -26,9 +26,18 @@ db.exec(`
     sent_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
   );
+
+  CREATE TABLE IF NOT EXISTS blocked_emails (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    email TEXT NOT NULL,
+    reason TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, email)
+  );
 `);
 
-export type SendStatus = "pending" | "sent" | "error";
+export type SendStatus = "pending" | "sent" | "error" | "blocked";
 
 export type SendLogRow = {
   id: number;
@@ -69,4 +78,24 @@ export function getRecentLogs(limit = 20): SendLogRow[] {
        LIMIT ?`
     )
     .all(limit) as SendLogRow[];
+}
+
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
+export function blockEmail(userId: string, email: string, reason = "unsubscribe") {
+  db.prepare(
+    `INSERT INTO blocked_emails (user_id, email, reason)
+     VALUES (?, ?, ?)
+     ON CONFLICT(user_id, email) DO UPDATE SET reason = excluded.reason`
+  ).run(userId, normalizeEmail(email), reason);
+}
+
+export function isEmailBlocked(userId: string, email: string): boolean {
+  const row = db
+    .prepare("SELECT id FROM blocked_emails WHERE user_id = ? AND email = ? LIMIT 1")
+    .get(userId, normalizeEmail(email));
+
+  return Boolean(row);
 }

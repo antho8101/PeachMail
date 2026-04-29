@@ -1,3 +1,5 @@
+import { useRef, useState } from "react";
+import { useI18n } from "../lib/i18n";
 import { CORE_VARIABLES, extractVariables, findMissingVariables } from "../lib/template";
 import type { Contact } from "../lib/validation";
 
@@ -10,11 +12,27 @@ type EmailComposerProps = {
 };
 
 export function EmailComposer({ subject, body, contacts, onSubjectChange, onBodyChange }: EmailComposerProps) {
+  const { t } = useI18n();
   const variables = extractVariables(`${subject} ${body}`);
   const missingVariables = findMissingVariables(variables, contacts);
+  const subjectRef = useRef<HTMLInputElement>(null);
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const [activeField, setActiveField] = useState<"subject" | "body">("body");
 
   function insertVariable(variable: string) {
-    onBodyChange(`${body}${body.endsWith(" ") || body.length === 0 ? "" : " "}{${variable}}`);
+    const token = `{${variable}}`;
+    const target = activeField === "subject" ? subjectRef.current : bodyRef.current;
+    const value = activeField === "subject" ? subject : body;
+    const update = activeField === "subject" ? onSubjectChange : onBodyChange;
+    const start = target?.selectionStart ?? value.length;
+    const end = target?.selectionEnd ?? value.length;
+    const nextValue = `${value.slice(0, start)}${token}${value.slice(end)}`;
+
+    update(nextValue);
+    requestAnimationFrame(() => {
+      target?.focus();
+      target?.setSelectionRange(start + token.length, start + token.length);
+    });
   }
 
   return (
@@ -22,32 +40,35 @@ export function EmailComposer({ subject, body, contacts, onSubjectChange, onBody
       <div className="section-title">
         <span className="sticker sticker-pink">1</span>
         <div>
-          <h2>La lettre</h2>
-          <p>Écris ton message, puis glisse quelques variables personnalisées.</p>
+          <h2>{t("composer.title")}</h2>
         </div>
       </div>
 
       <label>
-        Sujet
+        {t("composer.subject")}
         <input
+          ref={subjectRef}
           value={subject}
           onChange={(event) => onSubjectChange(event.target.value)}
-          placeholder="Ex: Une petite nouvelle pour {prenom}"
+          onFocus={() => setActiveField("subject")}
+          placeholder={t("composer.subjectPlaceholder")}
         />
       </label>
 
       <label>
-        Message
+        {t("composer.body")}
         <textarea
+          ref={bodyRef}
           value={body}
           onChange={(event) => onBodyChange(event.target.value)}
-          placeholder={"Bonjour {prenom},\n\nUn mot doux pour {entreprise}..."}
+          onFocus={() => setActiveField("body")}
+          placeholder={t("composer.bodyPlaceholder")}
           rows={11}
         />
       </label>
 
       <div className="variable-row">
-        <span>Insérer variable</span>
+        <span>{t("composer.variables")}</span>
         {CORE_VARIABLES.map((variable) => (
           <button className="chip-button" key={variable} type="button" onClick={() => insertVariable(variable)}>
             {"{" + variable + "}"}
@@ -56,9 +77,9 @@ export function EmailComposer({ subject, body, contacts, onSubjectChange, onBody
       </div>
 
       <div className="detected-box">
-        <strong>Variables détectées</strong>
+        <strong>{t("composer.detected")}</strong>
         {variables.length === 0 ? (
-          <p>Aucune variable pour l'instant. La machine attend son petit carburant.</p>
+          <p>{t("composer.none")}</p>
         ) : (
           <div className="chip-list">
             {variables.map((variable) => (
@@ -70,7 +91,7 @@ export function EmailComposer({ subject, body, contacts, onSubjectChange, onBody
         )}
         {missingVariables.length > 0 && (
           <p className="soft-warning">
-            Ce champ n'existe pas encore dans tes contacts: {missingVariables.map((variable) => `{${variable}}`).join(", ")}
+            {t("composer.missing", { variables: missingVariables.map((variable) => `{${variable}}`).join(", ") })}
           </p>
         )}
       </div>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { parseCsvFile, type CsvMapping } from "../lib/csv";
+import { useI18n } from "../lib/i18n";
 import type { Contact } from "../lib/validation";
 
 type CsvImporterProps = {
@@ -7,6 +8,7 @@ type CsvImporterProps = {
 };
 
 export function CsvImporter({ onImport }: CsvImporterProps) {
+  const { t } = useI18n();
   const [mapping, setMapping] = useState<CsvMapping | null>(null);
   const [lastCount, setLastCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +23,7 @@ export function CsvImporter({ onImport }: CsvImporterProps) {
       setLastCount(result.contacts.length);
       onImport(result.contacts);
     } catch {
-      setError("Impossible de lire ce CSV. Essaie avec un fichier plus simple.");
+      setError(t("csv.error"));
     }
   }
 
@@ -30,24 +32,23 @@ export function CsvImporter({ onImport }: CsvImporterProps) {
       <div className="section-title compact">
         <span className="sticker sticker-yellow">CSV</span>
         <div>
-          <h3>Importer une liste</h3>
-          <p>Colonnes reconnues: email, prénom, nom, entreprise.</p>
+          <h3>{t("csv.title")}</h3>
         </div>
       </div>
 
       <label className="file-drop">
         <input accept=".csv,text/csv" type="file" onChange={(event) => handleFile(event.target.files?.[0])} />
-        <span>Choisir un CSV</span>
+        <span>{t("csv.choose")}</span>
       </label>
 
       {mapping && (
         <div className="mapping-box">
-          <strong>Mapping détecté</strong>
+          <strong>{t("csv.mapping")}</strong>
           <p>
             email → {mapping.email ?? "?"} · prénom → {mapping.prenom ?? "?"} · nom → {mapping.nom ?? "?"} · entreprise →{" "}
             {mapping.entreprise ?? "?"}
           </p>
-          <p>{lastCount} contact(s) ajoutés à la pile.</p>
+          <p>{t("csv.added", { count: lastCount })}</p>
         </div>
       )}
 
